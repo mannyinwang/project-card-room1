@@ -41,6 +41,16 @@ def lobby():
             return render_template('lobby.html', user = user, games = games)
     return redirect('/login-registration')
 
+def lobby_action(game_id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = getUser(user_id)
+        if user:
+            game = joinGame(user, game_id)
+            if game:
+                return redirect('/card-table')
+    return redirect('/login-registration')
+
 def card_table():
     # if 'user_id' in session:
     #     user_id = session['user_id']
@@ -53,6 +63,53 @@ def card_table():
         return render_template('card-table.html', user = user, game = game, players = players)
     else:
         return redirect('/lobby')
+
+def card_table_fold(game_id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = getUser(user_id)
+        if user:
+            game, _ = getGame(game_id)
+            if game:
+                gameFold(user, game)
+    return redirect('/lobby')
+
+def card_table_call(game_id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = getUser(user_id)
+        if user:
+            game, _ = getGame(game_id)
+            if game:
+                gameCall(user, game)
+                return redirect('/card-table')
+    return redirect('/lobby')
+
+def card_table_raise():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = getUser(user_id)
+        if user:
+            game_id = request.form['game_id']
+            game, _ = getGame(game_id)
+            if game:
+                raise_amount = request.form['raise_amount']
+                gameRaise(user, game, raise_amount)
+                return redirect('/card-table')
+    return redirect('/lobby')
+
+def card_table_message():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = getUser(user_id)
+        if user:
+            game_id = request.form['game_id']
+            game, _ = getGame(game_id)
+            if game:
+                message = request.form['message']
+                gameMessage(user, game, message)
+                return redirect('/card-table')
+    return redirect('/lobby')
 
 def leaderboard():
     records = getTopWinLossRecords(10)

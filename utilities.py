@@ -83,7 +83,7 @@ def getActiveGames():
     result = mySQL.query_db(query)
     return result  # return game info
 
-def joinGame(game_id):
+def joinGame(user, game_id):
     return False
 
 def getGameIDFromUserID(user_id):
@@ -146,4 +146,16 @@ def getTopWinLossRecords(num_of_players):
     return False
 
 def getTopBettors(num_of_players):
+    return False
+
+def gameFold(user, game_id):
+    return False
+
+def gameCall(user, game_id):
+    return False
+
+def gameRaise(user, game_id, raise_amount):
+    return False
+
+def gameMessage(user, game_id, message):
     return False
