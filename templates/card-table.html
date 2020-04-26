@@ -63,6 +63,25 @@
                 </tbody>
             </table>
         </div>
-    </div>
+
+        <!-- Game play actions -->
+        <div class="row pt-5">
+            <div class="col-2">
+                <a href="/card-table/fold/{{game.game_id}}" class="btn btn-dark btn-sm btn-block">Fold</a>
+            </div>
+            <div class="col-2">
+                <a href="/card-table/call/{{game.game_id}}" class="btn btn-dark btn-sm btn-block">Call</a>
+            </div>
+            <form class="col-4" action="/card-table/raise" method="post">
+                <input type="text" name="raise_amount" placeholder="Raise amount" class="rounded-0">
+                <button type="submit" class="col-3 btn btn-dark btn-sm">Raise</button>
+            </form>
+            <form class="col-4" action="/card-table/message" method="post">
+                <input type="text" name="message" placeholder="Message" class="rounded-0">
+                <button type="submit" class="col-3 btn btn-dark btn-sm">Chat</button>
+            </form>
+        </div>
+
+    </div> <!-- End container-->
 </body>
 </html>
