@@ -1,69 +1,63 @@
-from flask import Flask, render_template, request, redirect, session, flash
-from mysqlconnection import connectToMySQL
-from config import bcrypt, re, EMAIL_REGEX, PWD_REGEX, socketio
-from flask_socketio import SocketIO
+from flask import Flask, render_template, request, redirect, session
+from utilities import *
 
-mySQLdb = "project_card_room1"
-starting_balance = 500   
 
 def login_registration():
+    session.clear()
     return render_template('login-registration.html')
 
 def login_action():
-    mySQL = connectToMySQL(mySQLdb)
-    query = "SELECT id, password FROM users WHERE email = %(em)s;"
-    data = {
-        'em': request.form['email']
-    }
-    result = mySQL.query_db(query, data)
-    if result:
-        if bcrypt.check_password_hash(result[0]['password'], request.form['password']):
-            session['memberid'] = result[0]['id']
-            return redirect('/user-profile')  # successful login
-        else:
-            flash("Login failed.")
+    email = request.form['email']
+    password = request.form['password']
+    user_id = loginUser(email, password)
+    if id:
+        session['memberid'] = user_id
+        return redirect('/user-profile')
     else:
-        flash("Unknown user.")
-    return redirect('/login-registration')
+        return redirect('/login-registration')
 
 def registration_action():
     user_name = request.form['user_name']
     email = request.form['email']
     password = request.form['password']
     confirm = request.form['confirm']
-    if len(user_name) == 0:
-        flash("Please enter user name.")
-    elif not EMAIL_REGEX.match(email):    # test whether a field matches the pattern
-        flash("Invalid email address.")
-    elif not re.search(PWD_REGEX, password): 
-        flash("Password must be 6-20 characters and contain one or more of each of: a number, uppercase letter, lower case letter, and special symbol.")
-    elif password != confirm:
-        flash("Password confirmation does not match.")
-    else: 
-        # check if email address already exists
-        mySQL = connectToMySQL(mySQLdb)
-        query = "SELECT id FROM users WHERE name = %(em)s;"
-        data = {
-            'em': email
-        }
-        result = mySQL.query_db(query, data)
-        if result:
-            flash("Account already exists.")
-            return redirect('/login-registration')
-        # add new member
-        mySQL = connectToMySQL(mySQLdb)
-        query = "INSERT INTO users (user_name, email, password, balance, wins, losses, created_at, updated_at) VALUES (%(un)s, %(em)s, %(pwd)s, %(b)s, %(w)s, %(l)s, NOW(), NOW());"
-        data = {
-            'un': user_name,
-            'em': email,
-            'pwd': bcrypt.generate_password_hash(password),
-            'b': starting_balance,
-            'w': 0,  # no wins
-            'l': 0   # no losses
-        }
-        mySQL.query_db(query, data)
-        flash("New user added.")
+    addUser(user_name, email, password, confirm)
     return redirect('/login-registration')
+
+def user_profile():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = getUser(user_id)
+        if user:
+            return render_template('user_profile.html', user = user)
+    return redirect('/login-registration')
+
+def lobby():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = getUser(user_id)
+        if user:
+            games = getActiveGames()
+            return render_template('lobby.html', user = user, games = games)
+    return redirect('/login-registration')
+
+def card_table():
+    # if 'user_id' in session:
+    #     user_id = session['user_id']
+    #     user = getUser(user_id)
+    #     if user:
+    game_id = getGameIDFromUserID(user_id=1)
+    game, players = getGame(game_id)
+    user = {}
+    if game:
+        return render_template('card-table.html', user = user, game = game, players = players)
+    else:
+        return redirect('/lobby')
+
+def leaderboard():
+    records = getTopWinLossRecords(10)
+    bettors = getTopBettors(10)
+    return render_template('leaderboard.html', records = records, bettors = bettors)
 
 def logout_action():
     session.clear()

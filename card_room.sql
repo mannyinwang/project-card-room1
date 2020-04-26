@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS `project-card-room1`.`cards` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `number` INT NULL,
   `suit` INT NULL,
+  `face_up` TINYINT NULL,
   `game_id` INT NOT NULL,
   `player_id` INT NULL,
   `created_at` DATETIME NULL,

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content = "width = device-width, initial-scale = 1.0, minimum-scale = 1, maximum-scale = 1, user-scalable = no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Card Room</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+</head>
+<body>
+    <div class="container bg-white">
+        <!-- Title -->
+        <h2 class="row pt-4">Card Table</h2>
+        <!-- <h3>Welcome {{user.user_name}}!</h3> -->
+
+
+        <!-- Game info -->
+        <div class="row pt-4">
+            <h4 class="col-12 pb-2">Game Info</h4>
+            <p class="col-12">Game Name = {{game.game_name}}</p>
+            <p class="col-12">Game Status = {{game.game_status}}</p>
+            <p class="col-12">Pot = {{game.pot}}</p>
+            <p class="col-12">Max Raise = {{game.max_raise}}</p>
+            <p class="col-12">Time Limit = {{game.time_limit}}</h6>
+        </div>
+
+        <!-- Players info -->
+        <div class="row pt-5">
+            <h4 class="col-12 pb-2">Players</h4>
+            <table class="table table-fixed text-left table-hover">
+                <tbody>
+                    <tr scope='row'>
+                        <th>Player</th>
+                        <th>Balance</th>
+                        <th>Photo</th>
+                        <th>Message</th>
+                        <th>Cards</th>
+                    </tr>
+                    {% for player in players %}
+                        <tr scope='row'>
+                            <td>{{player.user_name}}</td>
+                            <td>{{player.balance}}</td>
+                            <td>{{player.photo}}</td>
+                            <td>{{player.message}}</td>
+                            <td>
+                                {% for card in player.cards %}
+                                    {{card.number}}
+                                    {% if card.suit == 1 %}S
+                                    {% elif card.suit == 2 %}H
+                                    {% elif card.suit == 3 %}D
+                                    {% else %}C
+                                    {% endif %}
+                                    {% if card.face_up %} up |
+                                    {% else %} down |
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content = "width = device-width, initial-scale = 1.0, minimum-scale = 1, maximum-scale = 1, user-scalable = no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Card Room</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+</head>
+<body>
+    <div class="container bg-white">
+        <!-- Title -->
+        <h2>Lobby</h2>
+        <h3>Welcome {{user.user_name}}!</h3>
+
+        <!-- Active games -->
+        <div class="row pt-4">
+            <table>
+                <tr>
+                    <th>Game</th>
+                    <th>Ante</th>
+                    <th>Max Raise</th>
+                    <th>Min Players</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                <tr>
+                {% for game in games %}
+                    </tr>
+                        <td>{{game.game_name}}</td>
+                        <td>{{game.ante}}</td>
+                        <td>{{game.max_raise}}</td>
+                        <td>{{game.min_players}}</td>
+                        {% if game.game_status == 1 %} <!-- game is waiting for players to join -->
+                            <td>Waiting</td>
+                            <td><a href="/lobby-join-game/{{game.game_id}}" class="button btn-sm btn-primary">Join</a></td>
+                        {% else %}
+                            <td>Playing</td>
+                            <td></td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</body>
+</html>
