@@ -13,9 +13,42 @@
 <body>
     <div class="container bg-white">
         <!-- Title -->
-        <h2>User Profile</h2>
-        <h3>Welcome {{user.user_name}}!</h3>
+        <h2 class="pt-4">User Profile</h2>
+        <h6>Welcome {{user.user_name}}!</h6>
 
+        <!-- User info -->
+        <h4 class="pb-2 pt-4">User Info</h4>
+        <div class="row mb-2 align-items-left"> 
+            <p class="col-2">User name: </p>
+            <div class="col-1"></div>
+            <p class="col-2">{{user.user_name}}</p>
+        </div>
+        <div class="row mb-2 align-items-left"> 
+            <p class="col-2">Email: </p>
+            <div class="col-1"></div>
+            <p class="col-2">{{user.email}}</p>
+        </div>
+        <div class="row mb-2 align-items-left"> 
+            <p class="col-2">Balance: </p>
+            <div class="col-1"></div>
+            <p class="col-2">{{user.balance}}</p>
+        </div>
+        <!-- <div class="row no-gutters mb-2 align-items-left"> 
+            <p class="col-2">Win-loss record: </p>
+            <div class="col-1"></div>
+            <p class="col-2">{{user.wins}}/{{user.losses}}</p>
+        </div> -->
+
+        <!-- Navigation actions -->
+        <div class="row mt-5 mb-2"> 
+            <div class="col-1"></div>
+            <a href="/lobby" class="col-2 btn btn-dark btn-sm rounded-0">Lobby</a>
+            <div class="col-1"></div>
+            <a href="/leaderboard" class="col-2 btn btn-dark btn-sm rounded-0">Leaderboard</a>
+            <div class="col-1"></div>
+            <a href="/logout-action" class="col-2 btn btn-dark btn-sm rounded-0">Logout</a>
+            <div class="col-5"></div>
+        </div>
         
     </div>
 </body>

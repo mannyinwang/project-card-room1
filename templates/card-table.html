@@ -19,12 +19,14 @@
 
         <!-- Game info -->
         <div class="row pt-4">
-            <h4 class="col-12 pb-2">Game Info</h4>
+            <h4 class="row pb-2">Game Info</h4>
             <p class="col-12">Game Name = {{game.game_name}}</p>
             <p class="col-12">Game Status = {{game.game_status}}</p>
             <p class="col-12">Pot = {{game.pot}}</p>
             <p class="col-12">Max Raise = {{game.max_raise}}</p>
             <p class="col-12">Time Limit = {{game.time_limit}}</h6>
+            <p class="col-12">Number of Players = {{game.num_players}}</h6>
+            <p class="col-12">Turn = {{game.turn}}</h6>
         </div>
 
         <!-- Players info -->
@@ -53,7 +55,7 @@
                                     {% elif card.suit == 3 %}D
                                     {% else %}C
                                     {% endif %}
-                                    {% if card.face_up %} up |
+                                    {% if card.face_up %} face-up |
                                     {% else %} down |
                                     {% endif %}
                                 {% endfor %}
@@ -66,6 +68,8 @@
 
         <!-- Game play actions -->
         <div class="row pt-5">
+            <h4 class="col-12 pb-3">Player Actions</h4>
+            {% if game.turn == 0 %}
             <div class="col-2">
                 <a href="/card-table/fold/{{game.game_id}}" class="btn btn-dark btn-sm btn-block">Fold</a>
             </div>
@@ -76,10 +80,25 @@
                 <input type="text" name="raise_amount" placeholder="Raise amount" class="rounded-0">
                 <button type="submit" class="col-3 btn btn-dark btn-sm">Raise</button>
             </form>
+            {% else %}
+            <div class="col-2">
+                <a href="/card-table/fold/{{game.game_id}}" class="disabled btn btn-dark btn-sm btn-block">Fold</a>
+            </div>
+            <div class="col-2">
+                <a href="/card-table/call/{{game.game_id}}" class="disabled btn btn-dark btn-sm btn-block">Call</a>
+            </div>
+            <form class="col-4" action="/card-table/raise" method="post">
+                <input type="text" name="raise_amount" placeholder="Raise amount" class="rounded-0" disabled>
+                <button type="submit" class="col-3 btn btn-dark btn-sm" disabled>Raise</button>
+            </form>
+            {% endif %}
             <form class="col-4" action="/card-table/message" method="post">
                 <input type="text" name="message" placeholder="Message" class="rounded-0">
                 <button type="submit" class="col-3 btn btn-dark btn-sm">Chat</button>
             </form>
+            <div class="col-2 pt-5">
+                <a href="/card-table/leave/{{game.game_id}}" class="btn btn-dark btn-sm btn-block">Leave Game</a>
+            </div>
         </div>
 
     </div> <!-- End container-->

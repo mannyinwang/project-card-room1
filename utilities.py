@@ -3,7 +3,7 @@ from mysqlconnection import connectToMySQL
 from config import bcrypt, re, EMAIL_REGEX, PWD_REGEX, socketio
 from flask_socketio import SocketIO
 
-mySQLdb = "project_card_room1"
+mySQLdb = "project-card-room1"
 starting_balance = 10000  
 
 def addUser(user_name, email, password, confirm):
@@ -29,7 +29,7 @@ def addUser(user_name, email, password, confirm):
         else:
             # add new member
             mySQL = connectToMySQL(mySQLdb)
-            query = "INSERT INTO users (user_name, email, password, balance, created_at, updated_at) VALUES (%(un)s, %(em)s, %(pwd)s, %(b)s, %(w)s, %(l)s, NOW(), NOW());"
+            query = "INSERT INTO users (user_name, email, password, balance, created_at, updated_at) VALUES (%(un)s, %(em)s, %(pwd)s, %(b)s, NOW(), NOW());"
             data = {
                 'un': user_name,
                 'em': email,
@@ -64,7 +64,7 @@ def getUser(user_id):
     # returns False if user not registered
     # TO DO will need to update to get win/loss record from games_players table
     mySQL = connectToMySQL(mySQLdb)
-    query = "SELECT id, user_name, balance, photo FROM users WHERE id = %(id)s;"
+    query = "SELECT id, user_name, email, balance, photo FROM users WHERE id = %(id)s;"
     data = {
         'id': user_id
     }
@@ -100,11 +100,13 @@ def getGame(game_id):
     game['pot'] = 200
     game['game_name'] = '5-Card Stud'
     game['time_limit'] = 30
+    game['turn'] = 0
+    game['num_players'] = 4
     game['min_players'] = 4
     game['max_players'] = 4
     game['ante'] = 10
     game['max_raise'] = 50
-    players = [{},{},{},{},{}]
+    players = [{},{},{}]
     players[0] = {}
     players[0]['user_id'] = 1
     players[0]['user_name'] = "Mary"
@@ -141,6 +143,10 @@ def getGame(game_id):
     players[2]['cards'][3] = {'number': 1, 'suit': 3, 'face_up': 0}
     players[2]['cards'][4] = {'number': 1, 'suit': 4, 'face_up': 0}
     return game, players
+
+def startNewGame(user, game_type_id):
+    
+    return False
 
 def getTopWinLossRecords(num_of_players):
     return False

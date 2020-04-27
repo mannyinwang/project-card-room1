@@ -3,7 +3,7 @@ from utilities import *
 
 
 def login_registration():
-    session.clear()
+    session['user_id']= 0
     return render_template('login-registration.html')
 
 def login_action():
@@ -11,7 +11,7 @@ def login_action():
     password = request.form['password']
     user_id = loginUser(email, password)
     if id:
-        session['memberid'] = user_id
+        session['user_id'] = user_id
         return redirect('/user-profile')
     else:
         return redirect('/login-registration')
@@ -29,7 +29,7 @@ def user_profile():
         user_id = session['user_id']
         user = getUser(user_id)
         if user:
-            return render_template('user_profile.html', user = user)
+            return render_template('user-profile.html', user = user)
     return redirect('/login-registration')
 
 def lobby():
@@ -41,12 +41,23 @@ def lobby():
             return render_template('lobby.html', user = user, games = games)
     return redirect('/login-registration')
 
-def lobby_action(game_id):
+def lobby_join_game(game_id):
     if 'user_id' in session:
         user_id = session['user_id']
         user = getUser(user_id)
         if user:
             game = joinGame(user, game_id)
+            if game:
+                return redirect('/card-table')
+    return redirect('/login-registration')
+
+def lobby_new_game():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = getUser(user_id)
+        if user:
+            game_type_id = session['game_type_id']
+            game = newGame(user, game_type_id)
             if game:
                 return redirect('/card-table')
     return redirect('/login-registration')
@@ -65,6 +76,16 @@ def card_table():
         return redirect('/lobby')
 
 def card_table_fold(game_id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = getUser(user_id)
+        if user:
+            game, _ = getGame(game_id)
+            if game:
+                gameFold(user, game)
+    return redirect('/card-table')
+
+def card_table_leave(game_id):
     if 'user_id' in session:
         user_id = session['user_id']
         user = getUser(user_id)
@@ -112,9 +133,12 @@ def card_table_message():
     return redirect('/lobby')
 
 def leaderboard():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = getUser(user_id)
     records = getTopWinLossRecords(10)
     bettors = getTopBettors(10)
-    return render_template('leaderboard.html', records = records, bettors = bettors)
+    return render_template('leaderboard.html', user = user, records = records, bettors = bettors)
 
 def logout_action():
     session.clear()

@@ -62,6 +62,8 @@ CREATE TABLE IF NOT EXISTS `project-card-room1`.`games` (
   `game_type_id` INT NOT NULL,
   `game_status` INT NULL,
   `pot` INT NULL,
+  `turn` INT NULL,
+  `num_players` INT NULL,
   `created_at` DATETIME NULL,
   `updated_at` DATETIME NULL,
   PRIMARY KEY (`id`),

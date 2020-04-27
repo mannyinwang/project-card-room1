@@ -14,10 +14,11 @@
     <div class="container bg-white">
         <!-- Title -->
         <h2>Lobby</h2>
-        <h3>Welcome {{user.user_name}}!</h3>
+        <h6>Welcome {{user.user_name}}!</h6>
 
         <!-- Active games -->
         <div class="row pt-4">
+            {% if game %}
             <table>
                 <tr>
                     <th>Game</th>
@@ -27,23 +28,38 @@
                     <th>Status</th>
                     <th>Action</th>
                 <tr>
-                {% for game in games %}
-                    </tr>
-                        <td>{{game.game_name}}</td>
-                        <td>{{game.ante}}</td>
-                        <td>{{game.max_raise}}</td>
-                        <td>{{game.min_players}}</td>
-                        {% if game.game_status == 1 %} <!-- game is waiting for players to join -->
-                            <td>Waiting</td>
-                            <td><a href="/lobby-join-game/{{game.game_id}}" class="button btn-sm btn-primary">Join</a></td>
-                        {% else %}
-                            <td>Playing</td>
-                            <td></td>
-                        {% endif %}
-                    </tr>
-                {% endfor %}
+                    {% for game in games %}
+                        </tr>
+                            <td>{{game.game_name}}</td>
+                            <td>{{game.ante}}</td>
+                            <td>{{game.max_raise}}</td>
+                            <td>{{game.min_players}}</td>
+                            {% if game.game_status == 1 %} <!-- game is waiting for players to join -->
+                                <td>Waiting</td>
+                                <td><a href="/lobby-join-game/{{game.game_id}}" class="button btn-sm btn-primary">Join</a></td>
+                            {% else %}
+                                <td>Playing</td>
+                                <td></td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
             </table>
+            {% else %}
+            <h6>No active games</h6>
+            {% endif %}
         </div>
-    </div>
+
+        <!-- Navigation actions -->
+        <div class="row mt-5 mb-2"> 
+            <div class="col-1"></div>
+            <a href="/user-profile" class="col-2 btn btn-dark btn-sm rounded-0">User Profile</a>
+            <div class="col-1"></div>
+            <a href="/leaderboard" class="col-2 btn btn-dark btn-sm rounded-0">Leaderboard</a>
+            <div class="col-1"></div>
+            <a href="/logout-action" class="col-2 btn btn-dark btn-sm rounded-0">Logout</a>
+            <div class="col-5"></div>
+        </div>
+        
+    </div> <!-- End container-->
 </body>
 </html>
