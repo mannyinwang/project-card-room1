@@ -114,7 +114,7 @@ def getGame(game_id):
 
 def getPlayers(game_id):
     mySQL = connectToMySQL(mySQLdb)
-    query = "SELECT users.id as user_id, user_name, balance, photo, result FROM games_players JOIN users ON games_players.player_id = users.id WHERE games_players.game_id = %(g)s;"
+    query = "SELECT users.id as id, user_name, balance, photo FROM games_players JOIN users ON games_players.player_id = users.id WHERE games_players.game_id = %(g)s;"
     data = {
         'g': game_id
     }
@@ -123,7 +123,7 @@ def getPlayers(game_id):
 
 def getCards(game_id, player_id):
     mySQL = connectToMySQL(mySQLdb)
-    query = "SELECT id as card_id, number, suit, face_up FROM cards WHERE game_id = %(g)s, player_id = %(p)s;"
+    query = "SELECT id AS card_id, number, suit, face_up FROM cards WHERE game_id = %(g)s AND player_id = %(p)s;"
     data = {
         'g': game_id,
         'p': player_id
@@ -133,7 +133,7 @@ def getCards(game_id, player_id):
 
 def getMessages(game_id, user_id):
     mySQL = connectToMySQL(mySQLdb)
-    query = "SELECT id as message_id, message FROM messages WHERE game_id = %(g)s, user_id = %(u)s ORDER BY created_at DESC;"
+    query = "SELECT id AS message_id, message FROM messages WHERE game_id = %(g)s AND user_id = %(u)s ORDER BY created_at DESC;"
     data = {
         'g': game_id,
         'u': user_id
@@ -144,8 +144,12 @@ def getMessages(game_id, user_id):
 def getPlayersWithCardsAndMessages(game_id):
     players = getPlayers(game_id)
     for player in players:
-        player['cards'] = getCards(game_id, player['user_id'])
-        player['message'] = getMessages(game_id, player_id)[0]
+        player['cards'] = getCards(game_id, player['id'])
+        messages = getMessages(game_id, player['id'])
+        if messages:
+            player['message'] = messages[0]
+        else:
+            player['message'] = False
     return players
 
 def DUMMYgetGame(game_id):
@@ -263,16 +267,15 @@ def startGame(game_id):
     for player in players:
         makeBet(player, game, game['ante'])
     # create card deck
-    for number in range(1,13):
-        for suit in range(1,4):
+    for number in range(1,14): # 13 numbers, 1 = Ace, 11 = Jack, 12 = Queen, 13 = King
+        for suit in range(1,5):  # 4 suits: 1 = Spades, 2 = Hearts, 3 = Diamonds, 4 = Clubs
             mySQL = connectToMySQL(mySQLdb)
-            query = "INSERT INTO cards (number, suit, face_up, game_id, player_id, created_at, updated_at) VALUES (%(n)s, %(s)s, %(f)s, %(g)s, %(p)s, NOW(), NOW());"
+            query = "INSERT INTO cards (number, suit, face_up, game_id, player_id, created_at, updated_at) VALUES (%(n)s, %(s)s, %(f)s, %(g)s, NULL, NOW(), NOW());"
             data = {
                 'n': number,
                 's': suit,
                 'f': 0, # face down
-                'g': game_id,
-                'p': 0, # player_id = 0 = in the deck
+                'g': game_id
             }
             mySQL.query_db(query, data)
     return True
@@ -305,8 +308,9 @@ def makeBet(user, game, amount):
     # deduct amount from user's balance
     mySQL = connectToMySQL(mySQLdb)
     query = "UPDATE users SET balance = %(b)s, updated_at = NOW() WHERE id = %(id)s;"
+    print(user)
     data = {
-        'n': user['balance'] - amount,
+        'b': user['balance'] - amount,
         'id': user['id']
     }
     mySQL.query_db(query, data)

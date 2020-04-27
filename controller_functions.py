@@ -61,17 +61,23 @@ def lobby_new_game():
                 return redirect('/lobby')
     return redirect('/login-registration')
 
-def card_table():
-    # if 'user_id' in session:
-    #     user_id = session['user_id']
-    #     user = getUser(user_id)
-    #     if user:
-    #         game_id = getGameIDFromUserID(user_id)
-    #         game = getGame(game_id)
-    #         players = getPlayersWithCardsAndMessages(game_id)
+def DUMMYcard_table():
     game_id = getGameIDFromUserID(user_id=1)
     game, players = DUMMYgetGame(game_id)
     user = {}
+    if game:
+        return render_template('card-table.html', user = user, game = game, players = players)
+    else:
+        return redirect('/lobby')
+
+def card_table():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = getUser(user_id)
+        if user:
+            game_id = getGameIDFromUserID(user_id)
+            game = getGame(game_id)
+            players = getPlayersWithCardsAndMessages(game_id)
     if game:
         return render_template('card-table.html', user = user, game = game, players = players)
     else:
