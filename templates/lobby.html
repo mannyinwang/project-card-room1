@@ -18,7 +18,7 @@
 
         <!-- Active games -->
         <div class="row pt-4">
-            {% if game %}
+            {% if games %}
             <table>
                 <tr>
                     <th>Game</th>
@@ -34,9 +34,9 @@
                             <td>{{game.ante}}</td>
                             <td>{{game.max_raise}}</td>
                             <td>{{game.min_players}}</td>
-                            {% if game.game_status == 1 %} <!-- game is waiting for players to join -->
+                            {% if game.game_status == 0 %} <!-- game is waiting for players to join -->
                                 <td>Waiting</td>
-                                <td><a href="/lobby-join-game/{{game.game_id}}" class="button btn-sm btn-primary">Join</a></td>
+                                <td><a href="/lobby/join-game/{{game.game_id}}" class="button btn-sm btn-primary">Join</a></td>
                             {% else %}
                                 <td>Playing</td>
                                 <td></td>
@@ -48,6 +48,18 @@
             <h6>No active games</h6>
             {% endif %}
         </div>
+
+        <!-- New game inputs -->
+        <form action="/lobby/new-game" method="post" class="col-5 pt-3">
+            <div class="row">
+                <select type="text" name="game_type_id" class="col-3 rounded-0" required>
+                    {% for game_type in game_types %}
+                        <option value="{{game_type.id}}">{{game_type.game_name}}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="col-4 btn btn-dark btn-sm btn-block rounded-0 ml-3">Start New Game</button>
+            </div>
+        </form>
 
         <!-- Navigation actions -->
         <div class="row mt-5 mb-2"> 

@@ -169,13 +169,13 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `project-card-room1`.`messages` ;
 
 CREATE TABLE IF NOT EXISTS `project-card-room1`.`messages` (
-  `int` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `message` VARCHAR(255) NULL,
   `user_id` INT NOT NULL,
   `game_id` INT NULL,
   `created_at` DATETIME NULL,
   `updated_at` DATETIME NULL,
-  PRIMARY KEY (`int`),
+  PRIMARY KEY (`id`),
   INDEX `fk_messages_users1_idx` (`user_id` ASC) VISIBLE,
   INDEX `fk_messages_games1_idx` (`game_id` ASC) VISIBLE,
   CONSTRAINT `fk_messages_users1`
