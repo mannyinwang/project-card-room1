@@ -16,24 +16,6 @@ CREATE SCHEMA IF NOT EXISTS `project-card-room1` DEFAULT CHARACTER SET utf8 ;
 USE `project-card-room1` ;
 
 -- -----------------------------------------------------
--- Table `project-card-room1`.`users`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `project-card-room1`.`users` ;
-
-CREATE TABLE IF NOT EXISTS `project-card-room1`.`users` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `user_name` VARCHAR(255) NULL,
-  `email` VARCHAR(255) NULL,
-  `password` VARCHAR(255) NULL,
-  `balance` INT NULL,
-  `photo` BLOB NULL,
-  `created_at` DATETIME NULL,
-  `updated_at` DATETIME NULL,
-  PRIMARY KEY (`id`))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `project-card-room1`.`game_types`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `project-card-room1`.`game_types` ;
@@ -62,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `project-card-room1`.`games` (
   `game_type_id` INT NOT NULL,
   `game_status` INT NULL,
   `pot` INT NULL,
-  `turn` INT NULL,
+  `current_turn` INT NULL,
   `num_players` INT NULL,
   `created_at` DATETIME NULL,
   `updated_at` DATETIME NULL,
@@ -71,6 +53,33 @@ CREATE TABLE IF NOT EXISTS `project-card-room1`.`games` (
   CONSTRAINT `fk_games_game_types1`
     FOREIGN KEY (`game_type_id`)
     REFERENCES `project-card-room1`.`game_types` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `project-card-room1`.`users`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `project-card-room1`.`users` ;
+
+CREATE TABLE IF NOT EXISTS `project-card-room1`.`users` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `user_name` VARCHAR(255) NULL,
+  `email` VARCHAR(255) NULL,
+  `password` VARCHAR(255) NULL,
+  `balance` INT NULL,
+  `photo` BLOB NULL,
+  `wins` INT NULL,
+  `losses` INT NULL,
+  `current_game_id` INT NULL,
+  `created_at` DATETIME NULL,
+  `updated_at` DATETIME NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_users_games1_idx` (`current_game_id` ASC) VISIBLE,
+  CONSTRAINT `fk_users_games1`
+    FOREIGN KEY (`current_game_id`)
+    REFERENCES `project-card-room1`.`games` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -142,7 +151,9 @@ DROP TABLE IF EXISTS `project-card-room1`.`games_players` ;
 
 CREATE TABLE IF NOT EXISTS `project-card-room1`.`games_players` (
   `id` INT NOT NULL AUTO_INCREMENT,
+  `total_bet` INT NULL,
   `result` INT NULL,
+  `turn` INT NULL,
   `game_id` INT NOT NULL,
   `player_id` INT NOT NULL,
   `created_at` DATETIME NULL,

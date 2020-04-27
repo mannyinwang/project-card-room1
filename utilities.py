@@ -2,7 +2,7 @@ from flask import flash
 from mysqlconnection import connectToMySQL
 from config import bcrypt, re, EMAIL_REGEX, PWD_REGEX, socketio
 from flask_socketio import SocketIO
-from random import seed, randint
+from random import seed, randint, shuffle
 
 mySQLdb = "project-card-room1"
 starting_balance = 10000
@@ -30,12 +30,14 @@ def addUser(user_name, email, password, confirm):
         else:
             # add new member
             mySQL = connectToMySQL(mySQLdb)
-            query = "INSERT INTO users (user_name, email, password, balance, created_at, updated_at) VALUES (%(un)s, %(em)s, %(pwd)s, %(b)s, NOW(), NOW());"
+            query = "INSERT INTO users (user_name, email, password, balance, wins, losses, current_game_id, created_at, updated_at) VALUES (%(un)s, %(em)s, %(pwd)s, %(b)s, %(w)s, %(l)s, NULL, NOW(), NOW());"
             data = {
                 'un': user_name,
                 'em': email,
                 'pwd': bcrypt.generate_password_hash(password),
-                'b': starting_balance
+                'b': starting_balance,
+                'w': 0, # zero wins
+                'l': 0  # zero losses
             }
             mySQL.query_db(query, data)
             flash("New user added.")
@@ -65,7 +67,7 @@ def getUser(user_id):
     # returns False if user not registered
     # TO DO will need to update to get win/loss record from games_players table
     mySQL = connectToMySQL(mySQLdb)
-    query = "SELECT id, user_name, email, balance, photo FROM users WHERE id = %(id)s;"
+    query = "SELECT id, user_name, email, balance, photo, wins, losses, current_game_id FROM users WHERE id = %(id)s;"
     data = {
         'id': user_id
     }
@@ -105,7 +107,7 @@ def getGame(game_id):
     # get game info for game_id
     # returns game info (game_id, game_status, pot, game_name, time_limit, min_players, max_players, ante, max_raise) in the form a dictionary
     mySQL = connectToMySQL(mySQLdb)
-    query = "SELECT games.id AS game_id, game_status, pot, turn, num_players, game_name, time_limit, min_players, max_players, ante, max_raise FROM games JOIN game_types ON games.game_type_id = game_types.id WHERE games.id = %(g)s;"
+    query = "SELECT games.id AS game_id, game_status, pot, current_turn, num_players, game_name, time_limit, min_players, max_players, ante, max_raise FROM games JOIN game_types ON games.game_type_id = game_types.id WHERE games.id = %(g)s;"
     data = {
         'g': game_id
     }
@@ -114,7 +116,7 @@ def getGame(game_id):
 
 def getPlayers(game_id):
     mySQL = connectToMySQL(mySQLdb)
-    query = "SELECT users.id as id, user_name, balance, photo FROM games_players JOIN users ON games_players.player_id = users.id WHERE games_players.game_id = %(g)s;"
+    query = "SELECT users.id as id, user_name, balance, photo, wins, losses, total_bet, turn FROM games_players JOIN users ON games_players.player_id = users.id WHERE games_players.game_id = %(g)s;"
     data = {
         'g': game_id
     }
@@ -159,7 +161,7 @@ def DUMMYgetGame(game_id):
     game['pot'] = 200
     game['game_name'] = '5-Card Stud'
     game['time_limit'] = 30
-    game['turn'] = 0
+    game['current_turn'] = 0
     game['num_players'] = 4
     game['min_players'] = 4
     game['max_players'] = 4
@@ -205,7 +207,7 @@ def DUMMYgetGame(game_id):
 
 def createNewGame(game_type_id):
     mySQL = connectToMySQL(mySQLdb)
-    query = "INSERT INTO games (game_type_id, game_status, pot, turn, num_players, created_at, updated_at) VALUES (%(gt)s, %(gs)s, %(p)s, %(t)s, %(n)s, NOW(), NOW());"
+    query = "INSERT INTO games (game_type_id, game_status, pot, current_turn, num_players, created_at, updated_at) VALUES (%(gt)s, %(gs)s, %(p)s, %(t)s, %(n)s, NOW(), NOW());"
     data = {
         'gt': game_type_id,
         'gs': 0, # 0 = waiting, 1 = playing, 2 = completed
@@ -240,25 +242,35 @@ def addToNumPlayers(game_id, adder):
     return num_players + adder
 
 def addPlayerToGame(user, game_id):
+    # add user to games_players for game_id
     mySQL = connectToMySQL(mySQLdb)
-    query = "INSERT INTO games_players (result, game_id, player_id, created_at, updated_at) VALUES (%(r)s, %(g)s, %(p)s, NOW(), NOW());"
+    query = "INSERT INTO games_players (result, total_bet, turn, game_id, player_id, created_at, updated_at) VALUES (%(r)s, %(tb)s, %(t)s, %(g)s, %(p)s, NOW(), NOW());"
     data = {
         'r': 0, # 0 = not played, 1 = lost, 2 = won
+        'tb': 0, # zero bets so far
+        't': 0, # will set the players position or turn when game starts
         'g': game_id,
         'p': user['id']
     }
     mySQL.query_db(query, data)
     num_players = addToNumPlayers(game_id, 1)
+    # update users.current_game_id to game_id
+    mySQL = connectToMySQL(mySQLdb)
+    query = "UPDATE users SET current_game_id = %(g)s WHERE id = %(id)s;"
+    data = {
+        'g': game_id,
+        'id': user['id']
+    }
     return num_players
 
 def startGame(game_id):
-    # change games.game_status to 1 and set starting turn
+    # change games.game_status to 1 and set starting current_turn
     game = getGame(game_id)
     mySQL = connectToMySQL(mySQLdb)
-    query = "UPDATE games SET game_status = %(gs)s, turn = %(t)s, updated_at = NOW() WHERE id = %(gid)s;"
+    query = "UPDATE games SET game_status = %(gs)s, current_turn = %(t)s, updated_at = NOW() WHERE id = %(gid)s;"
     data = {
         'gs': 1, # 0 = waiting, 1 = playing, 2 = completed
-        't': 0, # TO DO: add randomization or other rule for who starts
+        't': 1,
         'gid': game_id
     }
     mySQL.query_db(query, data)
@@ -266,6 +278,18 @@ def startGame(game_id):
     players = getPlayers(game_id)
     for player in players:
         makeBet(player, game, game['ante'])
+    # set players' turns (i.e. positions at table)
+    turns = list(range(1,len(players)+1))
+    shuffle(turns)
+    for i in range(len(players)):
+        mySQL = connectToMySQL(mySQLdb)
+        query = "UPDATE games_players SET turn = %(t)s, updated_at = NOW() WHERE player_id = %(pid)s AND game_id = %(gid)s;"
+        data = {
+            't': turns[i],
+            'pid': players[i]['id'],
+            'gid': game_id
+        }
+        mySQL.query_db(query, data)
     # create card deck
     for number in range(1,14): # 13 numbers, 1 = Ace, 11 = Jack, 12 = Queen, 13 = King
         for suit in range(1,5):  # 4 suits: 1 = Spades, 2 = Hearts, 3 = Diamonds, 4 = Clubs
@@ -316,10 +340,27 @@ def makeBet(user, game, amount):
     mySQL.query_db(query, data)
     # add amount to game's pot
     mySQL = connectToMySQL(mySQLdb)
-    query = "UPDATE games SET pot = %(p)s, updated_at = NOW() WHERE game_id = %(g)s;"
+    query = "UPDATE games SET pot = %(p)s, updated_at = NOW() WHERE id = %(g)s;"
     data = {
         'p': game['pot'] + amount,
         'g': game['game_id']
+    }
+    mySQL.query_db(query, data)
+    # add amount to players' total_bet
+    mySQL = connectToMySQL(mySQLdb)
+    query = "SELECT total_bet FROM games_players WHERE game_id = %(g)s AND player_id = %(p)s;"
+    data = {
+        'g': game['game_id'],
+        'p': user['id']
+    }
+    result = mySQL.query_db(query, data)
+    total_bet = result[0]['total_bet']
+    mySQL = connectToMySQL(mySQLdb)
+    query = "UPDATE games_players SET total_bet = %(t)s, updated_at = NOW() WHERE game_id = %(g)s AND player_id = %(p)s;"
+    data = {
+        't': total_bet + amount,
+        'g': game['game_id'],
+        'p': user['id']
     }
     mySQL.query_db(query, data)
     return
@@ -331,6 +372,10 @@ def getTopBettors(num_of_players):
     return False
 
 def gameFold(user, game_id):
+    return False
+
+def gameLeave(user, game_id):
+    # remember to change users.current_game_id
     return False
 
 def gameCall(user, game_id):
